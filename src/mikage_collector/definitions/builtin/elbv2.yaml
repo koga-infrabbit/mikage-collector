@@ -1,0 +1,11 @@
+service: elbv2
+client: elbv2
+resources:
+  load_balancers:
+    steps:
+      - action: DescribeLoadBalancers
+        result_key: LoadBalancers
+  target_groups:
+    steps:
+      - action: DescribeTargetGroups
+        result_key: TargetGroups

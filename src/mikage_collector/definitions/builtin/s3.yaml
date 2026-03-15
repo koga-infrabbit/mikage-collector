@@ -1,0 +1,7 @@
+service: s3
+client: s3
+resources:
+  buckets:
+    steps:
+      - action: ListBuckets
+        result_key: Buckets

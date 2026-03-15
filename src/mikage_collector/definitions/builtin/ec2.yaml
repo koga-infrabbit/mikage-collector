@@ -1,0 +1,19 @@
+service: ec2
+client: ec2
+resources:
+  instances:
+    steps:
+      - action: DescribeInstances
+        result_key: Reservations[].Instances[]
+  vpcs:
+    steps:
+      - action: DescribeVpcs
+        result_key: Vpcs
+  subnets:
+    steps:
+      - action: DescribeSubnets
+        result_key: Subnets
+  security_groups:
+    steps:
+      - action: DescribeSecurityGroups
+        result_key: SecurityGroups

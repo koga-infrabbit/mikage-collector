@@ -1,0 +1,11 @@
+service: rds
+client: rds
+resources:
+  db_instances:
+    steps:
+      - action: DescribeDBInstances
+        result_key: DBInstances
+  db_clusters:
+    steps:
+      - action: DescribeDBClusters
+        result_key: DBClusters
