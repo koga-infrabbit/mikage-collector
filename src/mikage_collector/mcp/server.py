@@ -178,8 +178,8 @@ def describe_shape(service: str, operation: str, shape_path: str) -> dict[str, A
 
 @mcp.tool()
 def scan(
+    services: list[str],
     regions: list[str] | None = None,
-    services: list[str] | None = None,
     definitions_yaml: str | None = None,
     use_builtin: bool = True,
     profile: str | None = None,
@@ -190,13 +190,18 @@ def scan(
     Can use builtin definitions, inline YAML definitions, or both.
 
     Args:
+        services: Service names to scan (required, e.g. ["ec2", "rds"]). Must specify target services explicitly.
         regions: AWS region(s) to scan. Defaults to session default region.
-        services: Filter to specific service names (e.g. ["ec2", "rds"]).
         definitions_yaml: Inline YAML definition(s) as a string. Supports multi-document YAML (--- separator).
         use_builtin: Whether to include builtin definitions. Defaults to True.
         profile: AWS profile name.
         role_arn: IAM role ARN for cross-account access.
     """
+    if not services:
+        return {"error": "services is required. Specify target service names (e.g. ['ec2', 'rds'])."}
+
+    if "all" in services:
+        return {"error": "'all' is not allowed via MCP. Specify target services explicitly to avoid response explosion."}
     # Build definitions list
     definitions = []
 
@@ -212,12 +217,11 @@ def scan(
     if not definitions:
         return {"error": "No definitions available. Provide definitions_yaml or set use_builtin=True."}
 
-    # Filter by service if requested
-    if services:
-        service_set = set(services)
-        definitions = [d for d in definitions if d.service in service_set]
-        if not definitions:
-            return {"error": f"No definitions match services: {services}"}
+    # Filter by specified services
+    service_set = set(services)
+    definitions = [d for d in definitions if d.service in service_set]
+    if not definitions:
+        return {"error": f"No definitions match services: {services}"}
 
     engine = ScanEngine(
         regions=regions,
