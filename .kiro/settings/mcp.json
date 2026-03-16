@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mikage-collector": {
+      "url": "http://localhost:8888/mcp",
+      "disabled": true,
+      "autoApprove": []
+    }
+  }
+}
