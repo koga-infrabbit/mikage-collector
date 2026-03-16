@@ -177,6 +177,22 @@ def describe_shape(service: str, operation: str, shape_path: str) -> dict[str, A
 
 
 @mcp.tool()
+def list_definitions() -> dict[str, Any]:
+    """List all available builtin scan definitions.
+
+    Returns service names and their resource types that can be used with the scan tool.
+    """
+    defs = load_builtin_definitions()
+    result = {}
+    for d in defs:
+        result[d.service] = {
+            "client": d.client,
+            "resources": list(d.resources.keys()),
+        }
+    return {"total": len(result), "definitions": result}
+
+
+@mcp.tool()
 def scan(
     services: list[str],
     regions: list[str] | None = None,
