@@ -1,0 +1,15 @@
+service: dynamodb
+client: dynamodb
+resources:
+  tables:
+    steps:
+      - action: ListTables
+        result_key: TableNames
+  table_details:
+    depends_on: tables
+    for_each: tables
+    steps:
+      - action: DescribeTable
+        params:
+          TableName: "$each"
+        result_key: Table

@@ -1,0 +1,15 @@
+service: route53
+client: route53
+resources:
+  hosted_zones:
+    steps:
+      - action: ListHostedZones
+        result_key: HostedZones
+  record_sets:
+    depends_on: hosted_zones
+    for_each: hosted_zones[].Id
+    steps:
+      - action: ListResourceRecordSets
+        params:
+          HostedZoneId: "$each"
+        result_key: ResourceRecordSets

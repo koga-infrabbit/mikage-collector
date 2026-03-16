@@ -25,7 +25,7 @@ def main(verbose: bool, quiet: bool) -> None:
 
 @main.command()
 @click.option("--region", "-r", multiple=True, help="AWS region(s) to scan.")
-@click.option("--service", "-s", multiple=True, help="Service name(s) to scan.")
+@click.option("--service", "-s", multiple=True, help="Service name(s) to scan. Use 'all' for full scan. Default: ec2.")
 @click.option("--definitions", "-d", multiple=True, help="Custom definition directory.")
 @click.option("--definition-file", multiple=True, help="Specific definition file(s).")
 @click.option("--role-arn", help="IAM role ARN for cross-account access.")
@@ -49,8 +49,21 @@ def scan(
         role_arn=role_arn,
     )
 
+    # Resolve service filter: default to ec2, 'all' means no filter
+    # Support both -s ec2 -s rds and -s ec2,rds formats
+    if service:
+        parsed: list[str] = []
+        for s in service:
+            parsed.extend(part.strip() for part in s.split(",") if part.strip())
+        if "all" in parsed:
+            services_filter = None
+        else:
+            services_filter = parsed
+    else:
+        services_filter = ["ec2"]
+
     result = engine.scan(
-        services=list(service) if service else None,
+        services=services_filter,
         custom_dirs=[Path(d) for d in definitions] if definitions else None,
         definition_files=[Path(f) for f in definition_file] if definition_file else None,
     )

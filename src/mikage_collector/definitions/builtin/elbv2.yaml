@@ -5,6 +5,14 @@ resources:
     steps:
       - action: DescribeLoadBalancers
         result_key: LoadBalancers
+  listeners:
+    depends_on: load_balancers
+    for_each: load_balancers[].LoadBalancerArn
+    steps:
+      - action: DescribeListeners
+        params:
+          LoadBalancerArn: "$each"
+        result_key: Listeners
   target_groups:
     steps:
       - action: DescribeTargetGroups

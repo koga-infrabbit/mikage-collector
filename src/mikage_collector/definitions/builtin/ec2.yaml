@@ -17,3 +17,15 @@ resources:
     steps:
       - action: DescribeSecurityGroups
         result_key: SecurityGroups
+  volumes:
+    steps:
+      - action: DescribeVolumes
+        result_key: Volumes
+  network_interfaces:
+    steps:
+      - action: DescribeNetworkInterfaces
+        result_key: NetworkInterfaces
+  addresses:
+    steps:
+      - action: DescribeAddresses
+        result_key: Addresses

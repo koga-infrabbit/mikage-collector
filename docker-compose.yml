@@ -10,5 +10,4 @@ services:
       - ~/.aws:/root/.aws
     env_file:
       - .env
-    command:
-      - "${mode}"
+    command: [ "scan", "--service" , "${scan_target}" ]
