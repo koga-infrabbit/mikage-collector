@@ -37,6 +37,30 @@ class ServiceDefinition(BaseModel):
     resources: dict[str, ResourceDefinition]
 
 
+def parse_definitions_from_yaml(yaml_text: str) -> list[ServiceDefinition]:
+    """Parse one or more ServiceDefinitions from a YAML string.
+
+    Supports both a single document and multi-document YAML (separated by '---').
+    Returns a list of valid definitions; invalid documents are skipped with a warning.
+    """
+    definitions: list[ServiceDefinition] = []
+    try:
+        docs = list(yaml.safe_load_all(yaml_text))
+    except yaml.YAMLError as e:
+        logger.warning("YAML parse error in inline definition: %s", e)
+        return definitions
+
+    for i, data in enumerate(docs):
+        if data is None:
+            continue
+        try:
+            definitions.append(ServiceDefinition.model_validate(data))
+        except ValidationError as e:
+            logger.warning("Validation error in inline definition (doc %d): %s", i, e)
+
+    return definitions
+
+
 def load_definition_file(path: Path) -> ServiceDefinition | None:
     """Load and validate a single YAML definition file.
 

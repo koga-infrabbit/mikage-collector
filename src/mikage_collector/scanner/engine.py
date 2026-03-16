@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from mikage_collector.scanner.definition import ServiceDefinition, load_all_definitions
+from mikage_collector.scanner.definition import ServiceDefinition, load_all_definitions, parse_definitions_from_yaml
 from mikage_collector.scanner.executor import ServiceExecutor, SessionFactory
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,7 @@ class ScanEngine:
         services: list[str] | None = None,
         custom_dirs: list[Path] | None = None,
         definition_files: list[Path] | None = None,
+        inline_definitions: list[ServiceDefinition] | None = None,
     ) -> dict[str, Any]:
         """Run a full scan and return the result JSON structure.
 
@@ -45,12 +46,19 @@ class ScanEngine:
             services: Filter to specific service names.
             custom_dirs: Additional definition directories.
             definition_files: Specific definition files (overrides builtin+custom).
+            inline_definitions: Pre-parsed definitions (skips all file loading when provided).
         """
-        definitions = load_all_definitions(
-            custom_dirs=custom_dirs,
-            definition_files=definition_files,
-            services=services,
-        )
+        if inline_definitions is not None:
+            definitions = inline_definitions
+            if services:
+                service_set = set(services)
+                definitions = [d for d in definitions if d.service in service_set]
+        else:
+            definitions = load_all_definitions(
+                custom_dirs=custom_dirs,
+                definition_files=definition_files,
+                services=services,
+            )
 
         if not definitions:
             logger.warning("No definitions loaded, nothing to scan.")

@@ -1,14 +1,23 @@
-"""MCP Server for boto3 service model introspection."""
+"""MCP Server for boto3 service model introspection and scan execution."""
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
 
 import boto3
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("mikage-collector-introspection")
+from mikage_collector.scanner.definition import (
+    load_builtin_definitions,
+    parse_definitions_from_yaml,
+)
+from mikage_collector.scanner.engine import ScanEngine
+
+logger = logging.getLogger(__name__)
+
+mcp = FastMCP("mikage-collector")
 
 _session = boto3.Session()
 
@@ -165,6 +174,62 @@ def describe_shape(service: str, operation: str, shape_path: str) -> dict[str, A
         result["total_fields"] = len(result["members"])
 
     return result
+
+
+@mcp.tool()
+def scan(
+    regions: list[str] | None = None,
+    services: list[str] | None = None,
+    definitions_yaml: str | None = None,
+    use_builtin: bool = True,
+    profile: str | None = None,
+    role_arn: str | None = None,
+) -> dict[str, Any]:
+    """Scan AWS resources and return structured JSON results.
+
+    Can use builtin definitions, inline YAML definitions, or both.
+
+    Args:
+        regions: AWS region(s) to scan. Defaults to session default region.
+        services: Filter to specific service names (e.g. ["ec2", "rds"]).
+        definitions_yaml: Inline YAML definition(s) as a string. Supports multi-document YAML (--- separator).
+        use_builtin: Whether to include builtin definitions. Defaults to True.
+        profile: AWS profile name.
+        role_arn: IAM role ARN for cross-account access.
+    """
+    # Build definitions list
+    definitions = []
+
+    if use_builtin:
+        definitions.extend(load_builtin_definitions())
+
+    if definitions_yaml:
+        inline = parse_definitions_from_yaml(definitions_yaml)
+        if not inline:
+            return {"error": "Failed to parse inline YAML definitions. Check syntax and schema."}
+        definitions.extend(inline)
+
+    if not definitions:
+        return {"error": "No definitions available. Provide definitions_yaml or set use_builtin=True."}
+
+    # Filter by service if requested
+    if services:
+        service_set = set(services)
+        definitions = [d for d in definitions if d.service in service_set]
+        if not definitions:
+            return {"error": f"No definitions match services: {services}"}
+
+    engine = ScanEngine(
+        regions=regions,
+        profile=profile,
+        role_arn=role_arn,
+    )
+
+    try:
+        return engine.scan(inline_definitions=definitions)
+    except Exception as e:
+        logger.exception("Scan failed")
+        return {"error": f"Scan failed: {e}"}
 
 
 def create_app() -> Any:
