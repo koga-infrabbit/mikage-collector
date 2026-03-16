@@ -1,0 +1,7 @@
+service: lambda
+client: lambda
+resources:
+  functions:
+    steps:
+      - action: ListFunctions
+        result_key: Functions

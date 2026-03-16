@@ -1,0 +1,7 @@
+service: efs
+client: efs
+resources:
+  file_systems:
+    steps:
+      - action: DescribeFileSystems
+        result_key: FileSystems

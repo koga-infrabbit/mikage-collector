@@ -1,0 +1,13 @@
+services:
+  autocollector:
+    build: 
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: autocollector
+    ports:
+      - ${serve_port}:8888
+    volumes:
+      - ~/.aws:/root/.aws
+    env_file:
+      - .env
+    command: [ "scan", "--service" , "${scan_target}" ]

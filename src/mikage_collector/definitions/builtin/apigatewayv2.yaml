@@ -1,0 +1,7 @@
+service: apigatewayv2
+client: apigatewayv2
+resources:
+  apis:
+    steps:
+      - action: GetApis
+        result_key: Items

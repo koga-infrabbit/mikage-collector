@@ -1,0 +1,7 @@
+service: apigateway
+client: apigateway
+resources:
+  rest_apis:
+    steps:
+      - action: GetRestApis
+        result_key: items

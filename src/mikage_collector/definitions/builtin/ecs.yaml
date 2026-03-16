@@ -1,0 +1,24 @@
+service: ecs
+client: ecs
+resources:
+  clusters:
+    steps:
+      - action: ListClusters
+        result_key: clusterArns
+      - action: DescribeClusters
+        params:
+          clusters: "$clusterArns"
+        result_key: clusters
+  services:
+    depends_on: clusters
+    for_each: clusters[].clusterArn
+    steps:
+      - action: ListServices
+        params:
+          cluster: "$each"
+        result_key: serviceArns
+      - action: DescribeServices
+        params:
+          cluster: "$each"
+          services: "$serviceArns"
+        result_key: services

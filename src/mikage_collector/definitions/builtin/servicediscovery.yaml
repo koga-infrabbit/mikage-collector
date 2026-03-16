@@ -1,0 +1,11 @@
+service: servicediscovery
+client: servicediscovery
+resources:
+  namespaces:
+    steps:
+      - action: ListNamespaces
+        result_key: Namespaces
+  services:
+    steps:
+      - action: ListServices
+        result_key: Services
